@@ -20,6 +20,14 @@ A Python-based API for managing document indexing and semantic search using Elas
 - FastAPI
 - Uvicorn
 
+
+## BERT- Utilizes `SentenceTransformer` for generating semantic embeddings of document descriptions.
+
+- Integrated `SentenceTransformer('all-mpnet-base-v2')` for generating description embeddings (`descriptionVector`) during document indexing.
+- Endpoints now return file URLs with the full server context using FastAPI's `Request` object.
+- Added utility to retrieve the service base URL within API endpoints.
+- Search results from description, file name, and tags are merged and sorted by relevance score.
+
 ## API Endpoints
 
 ### 1. Upload File with Metadata
