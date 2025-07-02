@@ -3,7 +3,7 @@ from tag_index_mapping import tagIndexMapping
 
 
 class TagIndexing:
-    global elasticInstance;
+    global elasticInstance
 
     def __init__(self, elasticInstance):
         self.elasticInstance = elasticInstance
