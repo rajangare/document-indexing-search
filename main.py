@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Query, UploadFile, File
 from pydantic import BaseModel
 
-from document_indexing_service import FileIndexingService
+from document_indexing_service import DocumentIndexingService
 from document_search_service import DocumentSearchService
 from elastic_connection import get_elasticsearch_client
 from tag_indexing import TagIndexing
@@ -9,7 +9,7 @@ from tag_indexing import TagIndexing
 app = FastAPI()
 elasticInstance = get_elasticsearch_client()
 tag_indexing = TagIndexing(elasticInstance)
-file_indexing_service = FileIndexingService(elasticInstance)
+file_indexing_service = DocumentIndexingService(elasticInstance)
 document_search_service = DocumentSearchService(elasticInstance)
 
 

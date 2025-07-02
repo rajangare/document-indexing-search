@@ -1,6 +1,6 @@
 
 
-class FileIndexingService:
+class DocumentIndexingService:
     global elasticInstance
 
     def __init__(self, elasticsearch):
