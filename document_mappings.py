@@ -22,13 +22,22 @@ documentMetaData = {
             "type": "date"
         },
         "descriptionVector": {
-            "type": "text"
+            "type":"dense_vector",
+            "dims": 768,
+            "index":True,
+            "similarity": "l2_norm"
         },
         "nameVector": {
-            "type": "text"
+            "type":"dense_vector",
+            "dims": 768,
+            "index":True,
+            "similarity": "l2_norm"
         },
         "tagVector": {
-            "type": "text"
+            "type":"dense_vector",
+            "dims": 768,
+            "index":True,
+            "similarity": "l2_norm"
         }
     }
 }

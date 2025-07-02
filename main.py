@@ -1,10 +1,11 @@
-from fastapi import FastAPI, Query, UploadFile, File, HTTPException
-from pydantic import BaseModel
+from fastapi import FastAPI, Query, UploadFile, File, HTTPException, Form, Depends
 from starlette.responses import StreamingResponse
 
-from document_indexing_service import DocumentIndexingService
+from document_indexing_service import DocumentIndexingService, DOCUMENT_DESC_INDEX, DOCUMENT_NAME_INDEX, \
+    DOCUMENT_TAG_INDEX
 from document_search_service import DocumentSearchService
 from elastic_connection import get_elasticsearch_client
+from file_metadata import FileMetadata
 from tag_indexing import TagIndexing
 
 app = FastAPI()
@@ -21,25 +22,34 @@ def search_tags(search_semantic_query: str = Query(..., description="Semantic ta
     return {"tags": tags}
 
 
-class FileMetadata(BaseModel):
-    title: str
-    description: str
-    tags: list[str]
-    access_group: str
-    category: str
-    link: str
-    contact: str
+# Dependency to extract metadata fields from Form
+def get_metadata(
+    title: str = Form(...),
+    description: str = Form(...),
+    tags: list[str] = Form(...),  # Expecting a JSON string
+    access_group: str = Form(...),
+    category: str = Form(...),
+    link: str = Form(...),
+    contact: str = Form(...)
+) -> FileMetadata:
+    return FileMetadata(
+        title=title,
+        description=description,
+        tags=tags,
+        access_group=access_group,
+        category=category,
+        link=link,
+        contact=contact
+    )
+
+document_indexing_service.create_index(DOCUMENT_DESC_INDEX)  # Ensure the index exists at startup
+document_indexing_service.create_index(DOCUMENT_NAME_INDEX)  # Ensure the index exists at startup
+document_indexing_service.create_index(DOCUMENT_TAG_INDEX)  # Ensure the index exists at startup
 
 @app.post("/upload/")
-async def upload_document(fileMataData: FileMetadata, file: UploadFile = File(...)):
-    document_indexing_service.upload_and_index_file(file, fileMataData)
-
-    return {
-        "filename": file.filename,
-        "content_type": file.content_type
-    }
-
-
+async def upload_document(fileMataData: FileMetadata = Depends(get_metadata), fileUpload: UploadFile = File(None)):
+    print("File Metadata:", fileMataData)
+    return {"file_reference":document_indexing_service.upload_and_index_file(fileUpload, fileMataData)}
 
 
 @app.get("/search_document/")
@@ -48,8 +58,6 @@ def search_document_metadata(
     results = document_search_service.search_semantic(semantic_search_query)
 
     return {"results": results}
-
-
 
 
 @app.get("/download/{file_id}")
@@ -63,6 +71,13 @@ async def download_file(file_id: str):
         headers={"Content-Disposition": f"attachment; filename={file_data['filename']}"}
     )
 
+@app.get("/filepath/{file_id}")
+def get_filepath_by_fileid(file_id: str):
+    file_path = document_indexing_service.get_file_by_id(file_id)
+    if file_path is not None:
+        return {"file_path": file_path}
+    raise HTTPException(status_code=404, detail="File not found")
+
 
 @app.get("/access_groups/")
 def get_access_groups():
@@ -74,3 +89,4 @@ def get_access_groups():
         "GUEST"
     ]
     return {"access_groups": access_groups}
+

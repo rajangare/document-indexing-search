@@ -1,40 +1,91 @@
+import os
+import shutil
+import uuid
+from datetime import datetime
 
+from pretrained_transfermer_model import PretrainedTransformerModel
+
+UPLOAD_DIR = "D:\RAJKUMAR\projects\PYTHON_PROJECTS\document-indexing-search\documents"
+DOCUMENT_DESC_INDEX = "document_desc_index"
+DOCUMENT_NAME_INDEX = "document_name_index"
+DOCUMENT_TAG_INDEX = "document_tag_index"
+
+pretrained_transformer_model = PretrainedTransformerModel()
 
 class DocumentIndexingService:
-    global elasticInstance
 
     def __init__(self, elasticsearch):
         self.elasticsearch = elasticsearch
 
 
+    def create_index(self, index_name):
+        if not self.elasticsearch.indices.exists(index=index_name):
+            self.elasticsearch.indices.create(index=index_name)
+            print(f"Index '{index_name}' created.")
+        else:
+            print(f"Index '{index_name}' already exists.")
 
+    def upload_and_index_file(self, file, fileMetaData):
+        # Save the file
+        file_id = str(uuid.uuid4())
+        print("Generated File ID: ", file_id)
 
-    def upload_and_index_file(self, file, fileMataData):
-        # map the file metadata to documentMetaData
-        # Logic to handle file upload and indexing
-        # This could include saving the file to a storage location and indexing its content
-        # along with the provided metadata into Elasticsearch.
-        # Ensure the file is read in binary mode if necessary
-        # Example: Read file content and index it
-        #file_content = file.read()
-        #metadata = self.parse_metadata(fileMataData)
+        # Prefix the filename with file_id
+        file_ext = os.path.splitext(file.filename)[1]
+        new_filename = f"{file_id}_{file.filename}"
+        file_path = os.path.join(UPLOAD_DIR, new_filename)
+        print("Saving file with new filename: ", new_filename)
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
 
-        # Index the file content and metadata
-        #self.index_file(file_content, metadata)
+        print("File Title: ", fileMetaData.title)
+        self.index_file(file, fileMetaData, file_id)
+        print("Document indexed in Elasticsearch with ID:", file_id)
         print("File uploaded and indexed successfully.")
 
+        return file_id
 
+    def index_file(self, file, fileMetaData, file_id):
+        # Prepare metadata for indexing
+        document = {
+            "id": file_id,
+            "fileName": file.filename,
+            "description": fileMetaData.description,
+            "tags": fileMetaData.tags,
+            "accessGroup": fileMetaData.access_group,
+            "fileCategory": fileMetaData.category,
+            "uploadDate": datetime.now(),
+            "descriptionVector": pretrained_transformer_model.vector_transformer(fileMetaData.description),
+            "nameVector": pretrained_transformer_model.vector_transformer(fileMetaData.title),
+            "tagVector": pretrained_transformer_model.vector_transformer(fileMetaData.tags)
+        }
 
-    def index_file(self, file, metadata):
-        # Logic to index the file content and metadata into Elasticsearch
-        pass
+        # Index the DOCUMENT_DESC_INDEX in Elasticsearch
+        self.elasticsearch.index(
+            index=DOCUMENT_DESC_INDEX,  # Replace with your actual index name if different
+            id=file_id,
+            document=document
+        )
 
+        # Index the DOCUMENT_NAME_INDEX in Elasticsearch
+        self.elasticsearch.index(
+            index=DOCUMENT_NAME_INDEX,  # Replace with your actual index name if different
+            id=file_id,
+            document=document
+        )
 
+        # Index the DOCUMENT_TAG_INDEX in Elasticsearch
+        self.elasticsearch.index(
+            index=DOCUMENT_TAG_INDEX,  # Replace with your actual index name if different
+            id=file_id,
+            document=document
+        )
 
     def get_file_by_id(self, file_id):
-        # Logic to retrieve a file by its ID from file storage
-        pass
-
-
-
-
+        # Search for the file in UPLOAD_DIR with the given file_id prefix
+        for filename in os.listdir(UPLOAD_DIR):
+            if filename.startswith(f"{file_id}_"):
+                file_path = os.path.join(UPLOAD_DIR, filename)
+                print("File found: ", file_path)
+                return file_path  # Or open and return the file stream if needed
+        return None
