@@ -1,11 +1,10 @@
 from fastapi import FastAPI, Query, UploadFile, File
-from fastapi.params import Body
 from pydantic import BaseModel
 
 from document_indexing_service import FileIndexingService
 from document_search_service import DocumentSearchService
-from tag_indexing import TagIndexing
 from elastic_connection import get_elasticsearch_client
+from tag_indexing import TagIndexing
 
 app = FastAPI()
 elasticInstance = get_elasticsearch_client()
@@ -30,11 +29,8 @@ class FileMetadata(BaseModel):
     link: str
 
 @app.post("/upload/")
-async def upload_file(documentMetadata: FileMetadata= Body(..., example={
-    "indexname": "tags-2023",
-    "tagname": "confidential"
-}), file: UploadFile = File(...)):
-    file_indexing_service.upload_and_index_file(file, documentMetadata)
+async def upload(fileMataData: FileMetadata, file: UploadFile = File(...)):
+    file_indexing_service.upload_and_index_file(file, fileMataData)
 
     return {
         "filename": file.filename,
@@ -48,4 +44,3 @@ def search_document_metadata(
     results = document_search_service.search_semantic(semantic_search_query)
 
     return {"results": results}
-
