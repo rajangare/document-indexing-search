@@ -6,6 +6,9 @@ class DocumentIndexingService:
     def __init__(self, elasticsearch):
         self.elasticsearch = elasticsearch
 
+
+
+
     def upload_and_index_file(self, file, fileMataData):
         # map the file metadata to documentMetaData
         # Logic to handle file upload and indexing
@@ -21,8 +24,15 @@ class DocumentIndexingService:
         print("File uploaded and indexed successfully.")
 
 
+
     def index_file(self, file, metadata):
         # Logic to index the file content and metadata into Elasticsearch
+        pass
+
+
+
+    def get_file_by_id(self, file_id):
+        # Logic to retrieve a file by its ID from file storage
         pass
 
 

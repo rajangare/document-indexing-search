@@ -1,19 +1,66 @@
-# Documentation for Indexing Search Project
+# Document Indexing Search
 
-This project provides functionality to manage document indexing using Python and Elasticsearch.
+A Python-based API for managing document indexing and semantic search using Elasticsearch and FastAPI. This project enables uploading, indexing, searching, and downloading documents with metadata, as well as managing access groups.
 
 ## Features
 
-- Search for a tag and retrieve its index.
-- Add new tags to an `undefine` index if not found.
-- Easy integration with Elasticsearch.
+- **Upload documents** with associated metadata.
+- **Index documents** in Elasticsearch for fast retrieval.
+- **Semantic search** using vector similarity (supports multiple vectors).
+- **Download documents** by file ID.
+- **Manage and retrieve access groups**.
+- **RESTful API** with interactive Swagger documentation.
 
 ## Requirements
 
 - Python 3.x
 - pip
+- Elasticsearch (running instance)
 - Elasticsearch Python client
+- FastAPI
+- Uvicorn
 
+## API Endpoints
+
+### 1. Upload File with Metadata
+
+- **POST** `/upload_with_metadata/`
+- **Description:** Upload a file with metadata fields as form-data.
+- **Request:** `multipart/form-data` with fields: `file`, `title`, `description`
+- **Response:** Uploaded filename and metadata.
+
+### 2. Upload Metadata Only
+
+- **POST** `/upload_metadata/`
+- **Description:** Upload document metadata as a JSON object.
+- **Request:** JSON body matching the `FileMetadata` schema.
+- **Response:** Echoes received metadata.
+
+### 3. Semantic Search
+
+- **POST** `/semantic_search/`
+- **Description:** Search documents using one or more vectors.
+- **Request:** JSON body with a list of vectors.
+- **Response:** Top matching documents for each vector.
+
+### 4. Download File
+
+- **GET** `/download/{file_id}`
+- **Description:** Download a file by its unique ID.
+- **Response:** File stream with appropriate content type.
+
+### 5. Get Access Groups
+
+- **GET** `/access_groups/`
+- **Description:** Retrieve a list of available access groups.
+- **Response:** JSON list of group names.
+
+## Installation
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/<user>/document-indexing-search.git
+   cd document-indexing-search
 
 
 ## Installation
